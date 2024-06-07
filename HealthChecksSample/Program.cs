@@ -10,9 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSqlServer<ApplicationDbContext>(builder.Configuration.GetConnectionString("SqlConnection")!);
 
 builder.Services.AddHealthChecks()
-    .AddCheck<SampleHealthCheck>("Sample")
-    .AddTypeActivatedCheck<DatabaseHealthCheck>("Database", builder.Configuration.GetConnectionString("SqlConnection")!)
-    .AddDbContextCheck<ApplicationDbContext>("Database");
+    .AddCheck<SampleHealthCheck>("Sample", tags: ["publish"])
+    .AddTypeActivatedCheck<DatabaseHealthCheck>("SqlDatabase", builder.Configuration.GetConnectionString("SqlConnection")!)
+    .AddDbContextCheck<ApplicationDbContext>("EntityFramworkCore");
+
+// Configure the health check publisher
+builder.Services.Configure<HealthCheckPublisherOptions>(options =>
+{
+    options.Delay = TimeSpan.FromSeconds(2);
+    options.Timeout = TimeSpan.FromSeconds(30);
+    options.Predicate = healthCheck => healthCheck.Tags.Contains("publish");
+});
+
+builder.Services.AddSingleton<IHealthCheckPublisher, SampleHealthCheckPublisher>();
 
 // Sample for readiness and liveness checks
 builder.Services.AddSingleton<StartupHealthCheck>();
@@ -120,6 +130,23 @@ public class DatabaseHealthCheck(string connectionString) : IHealthCheck
 }
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options);
+
+public class SampleHealthCheckPublisher : IHealthCheckPublisher
+{
+    public Task PublishAsync(HealthReport report, CancellationToken cancellationToken)
+    {
+        if (report.Status == HealthStatus.Healthy)
+        {
+            // ...
+        }
+        else
+        {
+            // ...
+        }
+
+        return Task.CompletedTask;
+    }
+}
 
 public class StartupHealthCheck : IHealthCheck
 {
