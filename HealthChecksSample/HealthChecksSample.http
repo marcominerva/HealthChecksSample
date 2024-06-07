@@ -1,0 +1,6 @@
+@HealthChecksSample = https://localhost:7083
+
+GET {{HealthChecksSample}}/status/
+Accept: application/json
+
+###
