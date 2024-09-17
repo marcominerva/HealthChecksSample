@@ -41,8 +41,8 @@ app.UseHttpsRedirection();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    _ = app.UseSwagger();
-    _ = app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 //app.MapGet("/api/ping", () =>
@@ -118,7 +118,7 @@ public class DatabaseHealthCheck(string connectionString) : IHealthCheck
             command.CommandText = "SELECT 1";
 
             await connection.OpenAsync(cancellationToken);
-            _ = await command.ExecuteScalarAsync(cancellationToken);
+            await command.ExecuteScalarAsync(cancellationToken);
 
             return new HealthCheckResult(HealthStatus.Healthy);
         }
