@@ -31,9 +31,7 @@ builder.Services.AddHostedService<StartupBackgroundService>();
 builder.Services.AddHealthChecks()
     .AddCheck<StartupHealthCheck>("Startup", tags: ["ready"]);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 app.UseHttpsRedirection();
@@ -41,15 +39,17 @@ app.UseHttpsRedirection();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", app.Environment.ApplicationName);
+    });
 }
 
-//app.MapGet("/api/ping", () =>
-//{
-//    return TypedResults.NoContent();
-//})
-//.WithOpenApi();
+app.MapGet("/api/ping", () =>
+{
+    return TypedResults.NoContent();
+});
 
 app.MapHealthChecks("/status", new()
 {
